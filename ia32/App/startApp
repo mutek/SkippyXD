@@ -1,0 +1,102 @@
+#!/usr/bin/env sh
+# )A( - Andromeda Appificator 13.08.27
+# startApp proxy launcher
+# Luca Cappelletti (c) 2010-2013
+# licensed under the terms of GNU/GPL
+#
+# take into account arguments
+# do quote because it passes the LaunchPad parsing
+
+## hardcoded debug mode
+[ -z $DEBUG ] && DEBUG="No"
+if tty -s
+then
+:
+else
+
+        if [ "$DEBUG" = "Yes" ]
+        then
+
+                xterm -e $0
+                
+        else
+        :
+        fi
+        
+fi
+
+# check against Share service
+if [ -h /home/SkippyXD/Share ] && [ -e /home/SkippyXD/Share ] && [ -d /tmp/Share ]
+then
+:
+else
+        # just remove and rebuild
+        rm -rf --preserve-root /home/SkippyXD/Share
+        # add /tmp/Share root owner, valid only in first install
+        #2>/dev/null ASAP after debug
+        mkdir -p /tmp/Share 
+        # world only read write not exec (anti malware)
+        chmod -R 777 /tmp/Share
+
+        ln -s /tmp/Share /home/SkippyXD/Share
+        wait
+fi
+
+
+# check against Volatile cache service
+if [ -h /home/SkippyXD/.cache/Volatile ] && [ -e /home/SkippyXD/.cache/Volatile ]
+then
+:
+else
+
+        rm -rf --preserve-root /tmp/SkippyXD 2>/dev/null
+        rm -rf --preserve-root /home/SkippyXD/.cache/Volatile 2>/dev/null
+        mkdir -p /tmp/SkippyXD 2>/dev/null
+        chmod -R 700 /tmp/SkippyXD 2>/dev/null
+        ln -s /tmp/SkippyXD /home/SkippyXD/.cache/Volatile 2>/dev/null
+
+fi
+
+# try to start pulseaudio!!
+if [ -x $(which start-pulseaudio-x11) ]
+then
+
+        start-pulseaudio-x11 &
+        
+else
+:
+fi
+
+
+if [ "$#" -eq 0 ]
+then
+
+:
+
+else
+
+        arguments="$@"
+        
+fi
+
+# d u nou sQr pshr?
+if [ -x /home/SkippyXD/.App/ioSkippyXDGIT02092013-Debian7/Linux-ia32/startApp ] || [ "$(mount | grep -w SkippyXD)" != "" ]
+then
+:
+else
+
+# force umount also if not mounted
+$(which sudo) $(which umount) -d -f -l /home/SkippyXD/.App
+wait
+
+# mount over also if just mounted
+$(which sudo) $(which mount) -t iso9660 -o loop,noatime,nodiratime,norelatime,exec,uid=SkippyXD,gid=SkippyXD /home/SkippyXD/.App/SkippyXD.app /home/SkippyXD/.App
+wait
+fi
+
+export PATH=/home/SkippyXD:/home/SkippyXD/bin:/home/SkippyXD/.local/bin:/home/SkippyXD/.App:/home/SkippyXD/.App/bin:$PATH
+export LD_LIBRARY_PATH=/home/SkippyXD:/home/SkippyXD/lib:/home/SkippyXD/.local/lib:/home/SkippyXD/.App:/home/SkippyXD/.App/lib:$LD_LIBRARY_PATH
+
+dbus-launch --exit-with-session /home/SkippyXD/.App/ioSkippyXDGIT02092013-Debian7/Linux-ia32/startApp $arguments
+
+exit 0
